@@ -99,8 +99,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     args.executable_path = os.path.abspath(args.executable_path)
-    args.prefix = args.prefix or []
-    args.suffix = args.suffix or []
+    args.prefix = [pre.strip() for pre in args.prefix] if args.prefix else []
+    args.suffix = [suf.strip() for suf in args.suffix] if args.suffix else []
 
     assert os.path.isfile(args.executable_path)
 
