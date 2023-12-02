@@ -54,24 +54,14 @@ def get_original_executable_path(executable_path: str) -> str:
     return new_path
 
 
-def wrapper_code(original_executable_path: str, socket_path: str, prefix: list[str], suffix: list[str]) -> str:
+def wrapper_code(original_executable_path: str, prefix: list[str], suffix: list[str]) -> str:
     return f'''\
 #!/usr/bin/env python3
 
 # fuzz_wrap generated: {original_executable_path}
 
 import os
-import socket
 import sys
-
-sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-
-try:
-    sock.connect("{socket_path}")
-    os.dup2(sock.fileno(), sys.stdout.fileno())
-    os.dup2(sock.fileno(), sys.stderr.fileno())
-except Exception as e:
-    print(f"Failed to connect to socket {socket_path}: {{e}}")
 
 calling_args = sys.argv
 calling_args[0] = "{original_executable_path}"
@@ -100,9 +90,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument('--env', nargs='+', help='key:value environment variable(s)')
     parser.add_argument('--cwd', '-c', help='Current Working Directory')
     parser.add_argument('--tee', '-t', action='store_true', help='Copy stdout and stderr to socket')
-    parser.add_argument('--socket_path', default='/tmp/wrap_exe_socket')
     parser.add_argument('--executable_path', '-e', required=True, help='The executable to wrap.')
-    # TODO: option to run command in bash? maybe that can be done with prefix bash
+    # TODO: option to run command in bash?
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -120,7 +109,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     else:
         original_executable_path = get_original_executable_path(args.executable_path)
 
-    code = wrapper_code(original_executable_path, args.socket_path, args.prefix, args.suffix)
+    code = wrapper_code(original_executable_path, args.prefix, args.suffix)
 
     create_exe(args.executable_path, code)
 
