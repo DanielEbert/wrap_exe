@@ -42,14 +42,7 @@ def get_file_hash(path: str) -> str:
 
 
 def get_original_executable_path(executable_path: str) -> str:
-    fuzz_wrap_folder = '/tmp/wrapped_files/'
-
-    try:
-        os.mkdir(fuzz_wrap_folder)
-    except Exception:
-        ...
-
-    new_path = os.path.join(fuzz_wrap_folder, f'{os.path.basename(executable_path)}_{get_file_hash(executable_path)}')
+    new_path = f'{executable_path}_{get_file_hash(executable_path)}'
     shutil.move(executable_path, new_path)
     return new_path
 
